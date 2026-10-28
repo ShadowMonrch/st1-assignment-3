@@ -10,39 +10,59 @@ All Assignment 3 stage materials are provided from the beginning. Complete this 
 
 ### Activity 1 Requirement to test
 
+# Stage 7: Activity 1 - Requirement to test
+
 For each requirement, propose one positive test, one negative test and the key assertion.
 
 | Requirement | Positive test | Negative test | Key assertion |
 |---|---|---|---|
-| FR-01 Register patient | [response] | [response] | [response] |
-| FR-05 Prevent practitioner conflict | [response] | [response] | [response] |
-| FR-06 Cancel appointment | [response] | [response] | [response] |
-| FR-07 Retain cancelled history | [response] | [response] | [response] |
-
+| **FR-01 Register patient** | Call `PatientService.register_patient("P1", "Alex Example")` with a unique ID and valid name. | Attempt to register a patient with a blank name (e.g., `"   "`), or attempt to register a duplicate ID (e.g., `"P1"` twice). | The valid patient is added to the `SmartCareDataStore`. The invalid attempts raise a `ValueError` (due to `required_text` or duplicate ID check in `add_patient`). |
+| **FR-05 Prevent practitioner conflict** | Book Practitioner "DR1" at `2026-10-01 09:00`, then successfully book "DR1" at `2026-10-01 10:00`. | Book "DR1" at `09:00`, then attempt to book "DR1" at `09:00` on the same date. | The second booking at the exact same time raises a `ValueError`. The check relies on `SmartCareDataStore.has_practitioner_conflict()` returning `True`. |
+| **FR-06 Cancel appointment** | Call `AppointmentService.cancel_appointment("A1")` on an appointment with a `SCHEDULED` status. | Attempt to cancel an appointment that is already `CANCELLED` or `COMPLETED`. | The status successfully changes to `AppointmentStatus.CANCELLED`. The invalid attempt triggers the guard in `Appointment.cancel()` and raises a `ValueError` without changing the state. |
+| **FR-07 Retain cancelled history** | Cancel appointment "A1", then call `AppointmentService.find_appointment("A1")`. | Call `AppointmentService.find_appointment("A99")` (an ID that does not exist). | The cancelled appointment remains in the `SmartCareDataStore._appointments` dictionary and is returned by `find_appointment` with its status correctly showing as `CANCELLED`. The missing ID raises a `LookupError`. |
 ### Activity 2 Strong or weak assertion
+# Stage 7: Activity 2 - Strong or weak assertion
 
 For each, select Strong for stated behaviour or Weak/unclear and explain why. State the behaviour and limits.
 
-`assert True`
-Judgement: [Strong for stated behaviour / Weak/unclear]  Why: [response]
+**`assert True`**
+Judgement: **Weak/unclear**  
+Why: It asserts absolutely nothing and will always pass. It provides zero coverage and catches no bugs, regardless of whether the `SmartCareDataStore` or domain rules are broken.
+*Behaviour and limits:* Tests no behaviour. Limit: A completely useless test that creates a false sense of security.
 
-`assert appointment is not None`
-Judgement: [Strong for stated behaviour / Weak/unclear]  Why: [response]
+**`assert appointment is not None`**
+Judgement: **Weak/unclear**  
+Why: It only proves that `find_appointment()` returned an object. It doesn't verify if it's the *correct* appointment, nor does it check if the patient or practitioner references inside it are valid.
+*Behaviour and limits:* Tests basic object retrieval. Limit: The data store could return a completely wrong appointment, and this test would still pass.
 
-`assert appointment.status == AppointmentStatus.CANCELLED`
-Judgement: [Strong for stated behaviour / Weak/unclear]  Why: [response]
+**`assert appointment.status == AppointmentStatus.CANCELLED`**
+Judgement: **Strong**  
+Why: It explicitly verifies the business rule. It checks that the state transition logic in `Appointment.cancel()` actually executed and resulted in the exact expected Enum state.
+*Behaviour and limits:* Tests the specific state transition of an appointment. Limit: It doesn't verify that the appointment remains retrievable in the `SmartCareDataStore` after cancellation, only that the object's status mutated.
 
-`assert len(results) > 0`
-Judgement: [Strong for stated behaviour / Weak/unclear]  Why: [response]
+**`assert len(results) > 0`**
+Judgement: **Weak/unclear**  
+Why: It only proves that a list has at least one item. If a query like `list_appointments()` or a future `select_appointments()` returns 100 wrong records or unregistered objects, this test still passes.
+*Behaviour and limits:* Tests that a collection is not empty. Limit: It cannot detect false positives, irrelevant data, or missing records.
 
-`assert data_store.find_appointment('A1') is appointment`
-Judgement: [Strong for stated behaviour / Weak/unclear]  Why: [response]
-
+**`assert data_store.find_appointment('A1') is appointment`**
+Judgement: **Strong**  
+Why: It checks identity (`is`) rather than just equality. It proves that the `SmartCareDataStore` correctly stored and retrieved the *exact same object instance* in memory, ensuring no copying or substitution occurred.
+*Behaviour and limits:* Tests the data store's ability to map an ID to a specific in-memory instance. Limit: This works perfectly for session-only in-memory storage, but would need to change to an equality (`==`) check if a future SQLite implementation serializes and deserializes the data.
 ### Activity 3 Boundary thinking
+# Stage 7: Activity 3 - Boundary thinking
 
 Design boundary or edge cases for blank identifiers, whitespace-only names, same-time practitioner bookings, cancelled appointments and invalid status transitions.
-For each input/state, expected result and supporting contract: [response]
+For each input/state, expected result and supporting contract:
 
+
+| Input / State | Expected Result | Supporting Contract (Evidence) |
+|---|---|---|
+| **Blank identifiers**<br>e.g., `PatientService.register_patient("", "Alex")` or `AppointmentService.find_appointment("")` | The system raises a `ValueError` indicating the ID cannot be blank. The object is not created, and no lookup is performed. | **Contract:** `required_text()` in `domain.py`.<br>*Code:* `if not isinstance(value, str) or not value.strip(): raise ValueError(...)` is called during `__init__` and before data store lookups. |
+| **Whitespace-only names**<br>e.g., `Patient("P1", "   ")` or `Practitioner("DR1", "   ", "GP")` | The system raises a `ValueError` and rejects the whitespace-only string. The object is not created. | **Contract:** `required_text()` in `domain.py`.<br>*Code:* Explicitly strips and checks `if not value.strip()`, ensuring invisible blank names cannot be registered. |
+| **Same-time practitioner bookings**<br>e.g., Booking "DR1" for "2026-10-01 09:00" when that slot is already taken by another SCHEDULED appointment. | The first booking succeeds. The second booking attempt raises a `ValueError` ("Practitioner already has a SCHEDULED appointment..."). | **Contract:** `AppointmentService.book_appointment()` and `SmartCareDataStore.has_practitioner_conflict()`.<br>*Code:* The service checks for conflicts before calling `add_appointment()`, ensuring the store is not mutated on failure. |
+| **Cancelled appointments**<br>e.g., Attempting to book a slot that was previously booked but has since been cancelled, or trying to cancel a COMPLETED appointment. | The system **allows** a new booking at that same time. A cancelled appointment remains in the store but no longer blocks the schedule. | **Contract:** `SmartCareDataStore.has_practitioner_conflict()`.<br>*Code:* The conflict check explicitly filters for `appointment.status is AppointmentStatus.SCHEDULED`, meaning `CANCELLED` records are ignored during conflict checks but retained in the list. |
+| **Invalid status transitions**<br>e.g., Calling `cancel()` on an appointment that is already `CANCELLED` or `COMPLETED`. | The system raises a `ValueError` ("Only SCHEDULED appointments may be cancelled") and leaves the status unchanged. | **Contract:** `Appointment.cancel()` in `domain.py`.<br>*Code:* The method guards the transition: `if self.status is not AppointmentStatus.SCHEDULED: raise ValueError(...)`. |
 ### Activity 4 Critique GitHub Copilot tests
 
 GitHub Copilot generates five tests, all of which pass. Two only assert that objects are not None, one asserts True, and two assume SMS notifications exist. Identify what is wrong and rewrite the test intentions.
