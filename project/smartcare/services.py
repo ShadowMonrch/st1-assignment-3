@@ -68,14 +68,16 @@ class PractitionerService:
         return practitioner
 
     def find_practitioner(self, practitioner_id: str) -> Practitioner:
-        """Stage 6 TODO: return the stored practitioner for a valid ID.
+        """Return the stored practitioner for a valid ID.
 
         Completion must raise LookupError for absence and ValueError for
         a blank/invalid ID. It must not create a replacement
-        practitioner. The starter deliberately raises
-        NotImplementedError.
+        practitioner.
         """
-        raise NotImplementedError('Stage 6: practitioner lookup')
+        practitioner = self.data_store.find_practitioner(practitioner_id)
+        if practitioner is None:
+            raise LookupError('Practitioner not found')
+        return practitioner
 
 
 class AppointmentService:
@@ -137,13 +139,16 @@ class AppointmentService:
         return appointment
 
     def cancel_appointment(self, appointment_id: str) -> Appointment:
-        """Stage 6: cancel through the domain method and retain the
-        appointment.
+        """Cancel through the domain method and retain the appointment.
 
         Return the cancelled object. Unknown IDs raise LookupError;
         invalid transitions raise ValueError and leave state unchanged.
         """
-        raise NotImplementedError('Stage 6: appointment cancellation')
+        appointment = self.find_appointment(appointment_id)
+        # The domain method handles the state transition and raises
+        # ValueError if it is not SCHEDULED.
+        appointment.cancel()
+        return appointment
 
     def list_practitioner_appointments(
         self,
