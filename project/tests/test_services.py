@@ -56,6 +56,38 @@ def test_find_missing_patient(patient_service):
         patient_service.find_patient('P99')
 
 
+def test_find_patient_returns_stored_patient(patient_service):
+    """Lookup returns the actual stored patient instance."""
+    patient_service.register_patient('P1', 'Alex Example')
+
+    result = patient_service.find_patient('P1')
+
+    assert result is patient_service.data_store.find_patient('P1')
+
+
+def test_find_patient_trims_whitespace(patient_service):
+    """Lookup trims whitespace around the patient ID."""
+    patient_service.register_patient('P1', 'Alex Example')
+
+    result = patient_service.find_patient('  P1  ')
+
+    assert result.patient_id == 'P1'
+
+
+def test_find_patient_non_string_id_raises_value_error(patient_service):
+    """Lookup rejects non-string patient IDs."""
+    with pytest.raises(ValueError, match="Patient ID"):
+        patient_service.find_patient(None)
+
+
+def test_find_patient_is_case_sensitive(patient_service):
+    """Lookup does not match patient IDs with different casing."""
+    patient_service.register_patient('P1', 'Alex Example')
+
+    with pytest.raises(LookupError):
+        patient_service.find_patient('p1')
+
+
 # --- Practitioner Service Tests (TEST-17) ---
 
 def test_find_registered_practitioner(practitioner_service):
