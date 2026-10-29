@@ -28,17 +28,22 @@ class PatientService:
         self.data_store.add_patient(patient)
         return patient
 
+    
     def find_patient(self, patient_id: str) -> Patient:
         """Return the stored patient for a valid patient ID.
-    
+
         Raise ValueError for a blank or invalid ID and LookupError
         when no patient exists with the supplied ID.
         """
-        patient = self.data_store.find_patient(patient_id.strip())
+        if not isinstance(patient_id, str) or not patient_id.strip():
+            raise ValueError("Patient ID must be a non-blank string.")
+
+        patient_id = patient_id.strip()
+        patient = self.data_store.find_patient(patient_id)
 
         if patient is None:
-            raise LookupError(f"Patient not found: {patient_id.strip()}")
-    
+            raise LookupError(f"Patient not found: {patient_id}")
+
         return patient
 
 
