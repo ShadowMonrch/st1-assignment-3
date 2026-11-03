@@ -118,53 +118,53 @@ Create at least two focused issues. Add a linked practitioner-lookup issue or an
 
 | Issue link | Requirement | Owner | Acceptance criteria or precise link | Status |
 | [https://github.com/ShadowMonrch/st1-assignment-3/issues/1#issue-6058149745] | [FR-06/FR-07 Appointment Cancellation and Retained History] | [Seb] | [Valid cancellation; appropriate error handling; history retained; tests pass] | [In progress; verify current status] |
-| [https://github.com/ShadowMonrch/st1-assignment-3/issues/2#issue-6063281832] | [FR-02 Patient Search by ID] | [Deng] | [Correct stored patient returned; whitespace handled; invalid IDs raise ValueError; missing IDs raise LookupError; case-sensitive IDs; tests pass] | [PR open; review pending] |
+| [https://github.com/ShadowMonrch/st1-assignment-3/issues/2] | [FR-02 Patient Search by ID] | [Deng] | [Correct stored patient returned; whitespace handled; blank and non-string IDs raise ValueError; unknown IDs raise LookupError; IDs remain case-sensitive; tests pass] | [Merged into main via PR #3] |
 | [---]|[---]|[---]|[---]|[---]|
 
 ## G Pull request evidence
 
 Repeat this block per PR. Record actual events, not planned approvals.
 
-- PR link and title: [response]
-- Linked issue and requirement: [response]
-- Feature branch: [response]
-- Changed behaviour: [response]
-- Meaningful commits: [links]
-- Test command, directory and observed result: [response]
-- Another-member reviewer: [response]
-- Human observations recorded before Copilot: [link and time]
-- Requirement, responsibilities, test assertions and unrelated-scope checks: [response]
-- Key feedback: [response]
-- Author response/change and verification: [response]
-- Reviewer recheck and approval: [link]
-- Merge outcome and SHA: [response]
-- Significant Copilot assistance: [summary or none]
-- Linked issue closure: [response]
-- Each member updated main: [member and confirmation]
-- Integrated verification after merge: [command, directory, result and code SHA]
+- PR link and title: [https://github.com/ShadowMonrch/st1-assignment-3/pull/3 ,PR #3 — FR-02 Implement Patient Lookup]
+Linked issue and requirement: [Issue #2 — FR-02 Patient Search by ID] 
+- Feature branch: [feature/patient-lookup]  
+- Changed behaviour: [Implemented patient lookup, returning the actual stored patient object, trimming whitespace, rejecting blank and non-string IDs with ValueError, raising LookupError for unknown valid IDs, and preserving case sensitivity]  
+- Meaningful commits: [ec13233 — Implement patient lookup service; a6ae59c — Merge main into patient lookup feature; faa7f8a — Consolidate patient lookup tests into service tests; 84a33b9 — Validate patient lookup IDs]  
+- Test command, directory and observed result: [python -m pytest, run from project/; 29 passed after merging into main]  
+- Another-member reviewer: [Ryan (u3324852); GitHub shows one approving review]  
+- Human observations recorded before Copilot: [Ryan said most of the implementation looked fine, but he suspected there might be a problem he could not pinpoint. Record the actual review discussion or link if available]  
+- Requirement, responsibilities, test assertions and unrelated-scope checks: [Reviewed patient lookup behaviour against FR-02, including stored-object identity, whitespace, invalid IDs, unknown IDs, and case sensitivity]  
+- Key feedback: [Copilot identified that non-string IDs could raise AttributeError instead of the required ValueError]  
+- Author response/change and verification: [Added explicit type and blank-string validation before calling .strip(). Added a non-string ID test. The full suite passed with 29 tests]  
+- Reviewer recheck and approval: [Ryan approved the updated changes on GitHub; the PR timeline records one approving review]  
+- Merge outcome and SHA: [Merged into main; merge commit d576e06]  
+- Significant Copilot assistance: [Used Copilot to review the implementation and tests; evaluated its non-string ID finding against the service contract, addressed the finding, and verified the result with tests]  
+- Linked issue closure: [Check issue #2 and record its actual closed/open status]  
+- Each member updated main: [Deng pulled origin/main and verified the integrated tests. Seb's and Ryan's confirmations are waiting] 
+- Integrated verification after merge: [python -m pytest, from project/; 29 passed; code SHA d576e06]
 
 ## H Copilot collaboration record
 
 Record meaningful required use, not every trivial completion. Repeat per significant interaction.
 
-- Member and task: [response]
-- Prompt/purpose and relevant issue/diff: [response]
-- Summary of output: [response]
-- Human check against actual code, requirements and tests: [response]
-- Decision — Accept / Modify / Reject: [select]
-- Reason: [response]
-- Verification/evidence: [link and result]
+- Member and task: [Deng (u3323819) — used GitHub Copilot to review the FR-02 Patient Search by ID implementation in project/smartcare/services.py and its associated tests]
+- Prompt/purpose and relevant issue/diff: [Asked GitHub Copilot to review the patient lookup implementation and tests for correctness, acceptance-criteria coverage, potential defects, and missing test cases. The review related to https://github.com/ShadowMonrch/st1-assignment-3/issues/2 and https://github.com/ShadowMonrch/st1-assignment-3/pull/3]
+- Summary of output: [Copilot found that non-string patient IDs could cause an AttributeError because .strip() was called before validating the input type. It recommended validating the input before trimming it and adding a test for non-string IDs. Copilot also mentioned redundant lookup logic in a pasted version of the method, but that redundancy was not present in the checked-in implementation reviewed]
+- Human check against actual code, requirements and tests: [Compared the finding with the FR-02 service contract, which requires invalid IDs to raise ValueError, and inspected the actual implementation. Confirmed that the original method called .strip() before checking the input type, so the non-string input finding was relevant]
+- Decision — Accept / Modify / Reject: [Accepted and addressed the non-string validation finding. The redundant-lookup observation was not applied because it did not match the checked-in implementation]
+- Reason: [Explicit validation was needed to ensure non-string and blank IDs raise ValueError instead of allowing a non-string input to trigger AttributeError. The unrelated redundant-lookup observation did not require a code change]
+- Verification/evidence: [Added explicit input validation in project/smartcare/services.py and added test_find_patient_non_string_id_raises_value_error in project/tests/test_services.py. Ran python -m pytest from the project/ directory and observed 29 passed. The changes were merged through PR #3, with merge commit d576e06]
 
 ## I Human versus Copilot review comparison
 
-- Human reviewer noticed before consulting Copilot: [response]
-- Copilot noticed: [response]
-- Overlap: [response]
-- What did the human reviewer notice that Copilot did not: [response]
-- What did Copilot identify that the human reviewer initially missed: [response]
-- Unsupported or incorrect Copilot suggestion: [response or none identified with explanation]
-- Human judgement accepted, modified or rejected, and why: [response]
-- Which evidence justified merge approval: [response]
+- Human reviewer noticed before consulting Copilot: [Ryan said that most of the implementation looked fine, but he suspected there might be a problem he could not pinpoint]
+- Copilot noticed: [Copilot identified that passing a non-string patient ID could cause an AttributeError because the implementation called .strip() before validating the input type]
+- Overlap: [Both reviews suggested that the implementation might have an issue, although Ryan did not identify the specific cause]
+- What did the human reviewer notice that Copilot did not: [Ryan independently expressed concern that something might be wrong, but did not identify a specific defect]
+- What did Copilot identify that the human reviewer initially missed: [Copilot identified the specific non-string input validation issue and explained why it could raise the wrong exception]
+- Unsupported or incorrect Copilot suggestion: [Copilot also mentioned redundant lookup logic in a pasted version of the code. The checked-in implementation did not contain that redundancy, so that suggestion was not applicable to the reviewed version]
+- Human judgement accepted, modified or rejected, and why: [The non-string validation finding was accepted and addressed. Explicit validation was added before .strip(), and a test was added to verify that a non-string patient ID raises ValueError. The redundant-lookup suggestion was not applied because it did not match the checked-in implementation]
+- Which evidence justified merge approval: [The updated implementation and tests were reviewed, Ryan's approval was recorded on GitHub, and the integrated test suite passed with 29 tests after the pull request was merged]
 
 ## J Contributions
 
@@ -173,13 +173,13 @@ Repeat per member. Include only categories that describe actual work; write not 
 - Member: [Deng (u3323819)]
 
 - Implementation:  
-[Implemented PatientService.find_patient() in project/smartcare/services.py. The method trims whitespace, returns the stored patient object, raises ValueError for blank or invalid IDs, and raises LookupError when a patient does not exist]
+[Implemented PatientService.find_patient() in project/smartcare/services.py, including whitespace trimming, stored-object return, and the required ValueError and LookupError behaviour]
 
 - Testing:  
-[Created project/tests/test_patient_lookup.py with five tests covering stored-object identity, whitespace handling, missing IDs, blank IDs and case sensitivity. Ran python -m pytest from the project/ directory and observed 13 passing tests]
+[Initially created five focused patient lookup tests, then consolidated the relevant tests into project/tests/test_services.py. Added a test for non-string IDs and verified that the full suite passed with 29 tests]
 
 - Review:  
-[Submitted the feature/patient-lookup branch for review through a pull request. Independent review and approval are pending]
+[Submitted PR #3 and received Ryan's recorded approval]
 
 - Issue refinement:  
 [Created the FR-02 Patient Search issue with a requirement, acceptance criteria, scope and Definition of Done]
@@ -188,10 +188,10 @@ Repeat per member. Include only categories that describe actual work; write not 
 [Kept the patient lookup implementation and its tests focused on FR-02]
 
 - Debugging or integration:  
-[Installed the development dependencies and resolved the test discovery/import-path issue by running pytest from the correct project directory. Integrated review and merge verification are still pending]
+[Resolved a method-placement issue, corrected the implementation, merged the PR, pulled main, and verified the integrated suite]
 
 - Documentation or team support:  
-[Recorded the contribution in this draft. Update the shared Stage 6 evidence file when the corresponding entries are verified]
+[Updated the Stage 6 evidence to reflect the final implementation, review, and integration results]
 
 - Member: [response]
 - Implementation: [work and evidence]
@@ -242,13 +242,13 @@ Why is a high commit count not necessarily evidence of strong contribution?
 
 ## M Completion and handover
 
-- Starting SHA: [response]
-- Final Stage 6 code SHA: [response]
-- Test command: [response]
-- Working directory: [response]
-- Observed result: [response]
-- PR and another-member reviewer: [links]
-- Unresolved issue or none: [response]
+- Starting SHA: [Needs to be verified]
+- Final Stage 6 code SHA: [d576e06]
+- Test command: [python -m pytest]
+- Working directory: [project/]
+- Observed result: [29 passed in 0.09 seconds]
+- PR and another-member reviewer: [(https://github.com/ShadowMonrch/st1-assignment-3/pull/3), Ryan (u3324852)]
+- Unresolved issue or none: [Check the other two service targets and remaining team evidence before marking Stage 6 complete]
 - Stage 7 handover status: [ready for tutor checkpoint / unresolved work]
 - Final submitted SHA if later than tested SHA: [response and evidence-only difference]
 
