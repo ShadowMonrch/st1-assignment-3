@@ -8,4 +8,3 @@ __pycache__/
 .stage8_faults/
 .stage8-check-*/
 .stage8-verify-*/
-prepare_debugging.py
