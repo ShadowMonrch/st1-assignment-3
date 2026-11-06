@@ -4,8 +4,8 @@ UG and PG | One evolving group project | Complete this blank record using the St
 
 All Assignment 3 stage materials are provided from the beginning. Complete this stage only after the previous applicable stage has been integrated, verified and recorded. Use this supplied record in stage08/ in your EXISTING repository. Preserve project/, all earlier tests, records and responses. Do not download another starter or copy staff solutions. The Stage 8 preparation utility is supplied or run by teaching staff when Stage 8 begins. Follow your tutor’s controlled workflow and the handout. If temporarily supplied, keep it outside the repository in a sibling Stage_8_Assets/ folder; exclude it from Git and the final submission.
 
-Group/tutorial: [complete]
-Members and UG/PG cohorts: [complete]
+Group/tutorial: [Group 5]
+Members and UG/PG cohorts: [u3323819 (Deng), u3334274 (Seb), u3324852 (Ryan)]
 Record owner / contribution links for each member: [complete]
 
 Use concise results and accessible artefact links rather than copying entire logs. Keep human-first entries before consulting GitHub Copilot. Link shared evidence once; do not repeat it across sections. No entries below are specimen answers or claimed results.
@@ -69,10 +69,11 @@ Traceback — exception/assertion; expected/observed values; test line; call pat
 
 ## C. F8-01 diagnosis and repair
 
-- Symptom / observed behaviour: [complete]
-- Expected behaviour and requirement: [complete]
-- Minimal synthetic reproduction steps: [complete]
-- Meaningful failing test path/name and exact relevant failure: [complete]
+- Symptom / observed behaviour: Conflicting booking was accepted
+- Expected behaviour and requirement: Same-practitioner/time booking rejected
+- Minimal synthetic reproduction steps: Register patients P1/P2 and practitioner D1. Book A1 with D1 at 2026-10-01 09:00, then attempt A2 with D1 at the same time. The second booking is incorrectly accepted instead of raising ValueError.
+- Meaningful failing test path/name and exact relevant failure: tests/test_starter.py::test_conflict_rule_and_different_practitioner
+Failure: Failed: DID NOT RAISE ValueError (line 127).
 - Human hypothesis and intended checks: see E, F8-01.
 - Supported root cause and inspected code/runtime evidence: [complete after diagnosis]
 - Smallest justified fix / diff / why other behaviour is preserved: [complete]
@@ -80,10 +81,12 @@ Traceback — exception/assertion; expected/observed values; test line; call pat
 
 ## D. F8-02 diagnosis and repair
 
-- Symptom / observed behaviour: [complete]
-- Expected behaviour and requirement: [complete]
-- Minimal synthetic reproduction steps: [complete]
-- Meaningful failing test path/name and exact relevant failure: [complete]
+- Symptom / observed behaviour: Cancelled appointment could not be found
+- Expected behaviour and requirement: Cancelled appointment remains retrievable
+- Minimal synthetic reproduction steps: Register P1 and D1, book A1, then cancel it. Attempting to retrieve A1 returns None despite its cancellation status. Repeated cancellation also fails with the wrong exception.
+- Meaningful failing test path/name and exact relevant failure: tests/test_services.py::test_service_cancel_appointment
+Failure: AttributeError: 'NoneType' object has no attribute 'status' (line 129). tests/test_services.py::test_service_repeated_cancellation_rejected
+Failure: LookupError: Appointment not found (line 151).
 - Human hypothesis and intended checks: see E, F8-02.
 - Supported root cause and inspected code/runtime evidence: [complete after diagnosis]
 - Smallest justified fix / diff / why other behaviour is preserved: [complete]
@@ -94,14 +97,14 @@ Traceback — exception/assertion; expected/observed values; test line; call pat
 Complete both entries BEFORE Copilot. C/D supply observed/expected/reproduction/test; retain those initial facts and link them here.
 
 ### F8-01 human entry
-Likely cause and why plausible: [complete]
-Evidence intended to inspect / competing explanation / discriminating check: [complete]
-Member and saved sequence/time or commit showing this preceded consultation: [complete]
+Likely cause and why plausible: The practitioner conflict check uses != instead of ==, causing the system to check different practitioners rather than the same practitioner.
+Evidence intended to inspect / competing explanation / discriminating check: Inspect has_practitioner_conflict() and compare bookings with the same and different practitioners. Check whether the issue originates in the service or data-store logic.
+Member and saved sequence/time or commit showing this preceded consultation: u3334274 — Diagnosis recorded before GitHub Copilot consultation. 2026-11-06 15:05:44 AEDT
 
 ### F8-02 human entry
-Likely cause and why plausible: [complete]
-Evidence intended to inspect / competing explanation / discriminating check: [complete]
-Member and saved sequence/time or commit showing this preceded consultation: [complete]
+Likely cause and why plausible: The find_appointment() method excludes cancelled appointments, causing lookup to return None even though the appointment remains stored.
+Evidence intended to inspect / competing explanation / discriminating check: Compare find_appointment() with list_appointments() after cancellation to determine whether the appointment was deleted or incorrectly filtered.
+Member and saved sequence/time or commit showing this preceded consultation: u3334274 — Diagnosis recorded before GitHub Copilot consultation. 2026-11-06 15:05:44 AEDT
 
 ## F. GitHub Copilot prompts, findings and human decisions
 
