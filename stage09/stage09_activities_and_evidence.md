@@ -255,36 +255,119 @@ However, passing tests do not prove that every possible input or situation will 
 | UI-02 invalid-input recovery | Run `python main.py --interactive` and enter an invalid menu choice (`9`), followed by `0` to exit. | The application displays an invalid-choice message, returns to the menu and allows the user to exit normally. | Successfully demonstrated. Entering `9` displayed `Invalid menu choice. Please select 0 to 8.` The menu appeared again and the application exited normally after entering `0`. Other invalid-input cases still require explicit demonstration. | Manual terminal demonstration |
 | Automated service and regression tests | From the `project/` directory, run `python -m pytest -q`. Existing service tests are in `tests/test_services.py`. | Existing service and domain functionality remains operational, including patient/practitioner lookup, appointment cancellation, missing appointment handling and rejection of repeated cancellation. | The complete test suite reported 52 passed. No test failures were reported. | `project/tests/test_services.py`, `project/tests/test_queries.py` and full pytest result |
 
-## E. GitHub Copilot review and human decisions
+## Section E – GitHub Copilot review and human verification
 
-Human design completed before AI: <!-- reference -->
-Actual prompt/context supplied: <!-- paste or accessible reference -->
-Actual response: <!-- accessible reference -->
+### E1. Review task and prompt
 
-| AI finding | Code/test evidence | Severity | Accept/Modify/Reject and reason | Change or no change | Actual verification |
-|---|---|---|---|---|---|
-| | | | | | |
+GitHub Copilot was asked to review the SmartCare query and console integration. The review focused on:
 
-Responsibility check: explain how domain invariants, shared-store collections, service coordination, pure queries and console effects remain separate: <!-- response -->
+- Explicit inputs, query purity and source-list non-mutation.
+- Responsibilities of the domain, services, data store and console.
+- Validation and error recovery without partial state changes.
+- Object identity, enum filtering and appointment ordering.
+- Retention of cancelled appointment history.
+- Missing query, workflow and console tests.
 
-## F. Required reflections
+The review was limited to the existing SmartCare requirements. Copilot was instructed not to redesign the domain, introduce new frameworks or recommend deleting cancelled appointments.
 
-1. Which integration concern was architectural rather than a filtering/sorting detail? <!-- response -->
-2. Which Copilot suggestion did you reject as over-engineering, and why? <!-- response -->
-3. How did you prove cancelled appointments remain retrievable and listable in the same session? <!-- response -->
+### E2. Copilot findings and human decisions
 
-## G. Ten formative answers
+| Finding | Severity | Decision | Reason and human verification |
+|---|---|---|---|
+| Query functions were reported as unimplemented. | Important | Modify | Copilot's finding was based on an earlier version of the repository. Inspection of the current committed `queries.py` confirmed that both functions are implemented. The query filters by practitioner and optional status, sorts by appointment date/time and ID, and does not mutate the source collection. |
+| Service listing workflow was reported as unimplemented. | Important | Modify | Copilot's finding was based on an earlier version. Inspection of the current committed `services.py` confirmed that the method validates the practitioner and optional status, retrieves appointments from the data store and delegates filtering and sorting to `select_appointments()`. Manual testing also demonstrated listing all appointments and filtering scheduled appointments. |
+| Interactive console was reported as unimplemented. | Important | Modify | Copilot's finding was based on an earlier version. Inspection of the current committed `console.py` confirmed that `run_menu()` creates one shared data store and service set, then repeatedly displays the menu. Manual testing demonstrated registration, booking, cancellation, searching, listing and exiting. |
+| Failure-state test coverage may be incomplete. | Important | Modify | Copilot identified a legitimate area for further testing based on an earlier project snapshot. The current `test_workflows.py` includes UI-01 and UI-02 tests covering duplicate registration, unknown records, booking conflicts, invalid dates, repeated cancellation, invalid listing status and recovery after errors. The tests also demonstrate that an appointment ID remains available after failed booking attempts. Some individual failure-state checks could be made more explicit, but the main required workflow and recovery scenarios are covered. |
+| Enum comparison uses `.value` instead of comparing enum members. | Optional | Reject | This was a suggested consistency improvement rather than a demonstrated defect. The existing comparison did not prevent the required functionality from working, so no change was necessary. |
 
-1. What makes select_appointments pure, and what side effect breaks purity? <!-- response -->
-2. Which explicit inputs are needed, and why avoid a global store? <!-- response -->
-3. How can a new list reuse Appointment objects safely? <!-- response -->
-4. Why use a named key, and what breaks equal-time ties? <!-- response -->
-5. How do default and explicit status filters differ? <!-- response -->
-6. How do empty, unknown practitioner and invalid filter cases differ? <!-- response -->
-7. Which console errors recover, and how is unchanged state checked? <!-- response -->
-8. What is data integrity for registered participants, conflicts and history? <!-- response -->
-9. What is Copilot's review role, and who verifies findings? <!-- response -->
-10. How do pure functions and OOP responsibilities work together? <!-- response -->
+### E3. Human verification
+
+The Copilot review was compared against the subsequently implemented project rather than accepted without checking.
+
+The following evidence was available:
+
+- The full automated test suite completed with **52 tests passing**.
+- The interactive menu was manually exercised.
+- Invalid menu selection was rejected, and the menu continued running.
+- Appointments could be registered, booked, cancelled and retrieved.
+- Cancelled appointments remained visible when listing all appointments.
+- Filtering for scheduled appointments excluded cancelled appointments.
+- A previously occupied appointment time could be booked again after the original appointment was cancelled.
+
+These observations provided evidence that the main implementation findings were based on an earlier project snapshot.
+
+### E4. Overall assessment
+
+GitHub Copilot helped identify important areas to inspect, particularly query implementation, service integration, console functionality and test coverage. However, its review did not accurately represent the subsequently completed implementation.
+
+The findings were therefore treated as suggestions requiring human verification rather than proof of defects. The Optional enum consistency suggestion was rejected because it was not a demonstrated problem and did not require a change to satisfy the requirements.
+
+Human verification remained necessary because Copilot's review does not establish that the code works or that tests have passed.
+
+### E5. Final Verification:
+
+**Final verification:**
+
+- Command: `python -m pytest -q`
+- Working directory: `project/`
+- Result: 52 passed.
+- Outcome: All automated tests passed, including the Stage 9 query, service, workflow and earlier regression tests.
+
+## Section F – Reflections
+
+### F1. Which integration concern was architectural rather than a filtering/sorting detail?
+
+The main architectural concern was keeping responsibilities separated between the query functions, services, data store and console. The query functions should only handle filtering and sorting, while the services validate inputs and coordinate operations with the data store. The data store manages the appointment records, and the console handles user interaction. Keeping these responsibilities separate makes the application easier to maintain, test and extend. It also prevents business rules from being duplicated in different parts of the application.
+
+### F2. Which Copilot suggestion did you reject as over-engineering, and why?
+
+I rejected Copilot's optional suggestion to change the practitioner conflict check from comparing the status string value to comparing enum members directly. Although comparing enum members could improve consistency, the existing implementation already worked correctly and passed the tests. Copilot did not identify an actual failure caused by the existing comparison. Changing working code without a demonstrated requirement or defect would introduce unnecessary changes and increase the risk of affecting existing functionality.
+
+### F3. How did you prove cancelled appointments remain retrievable and listable during the same session?
+
+I verified this through the integrated workflow tests and interactive console demonstration. First, I booked appointment A1 and then cancelled it. I checked that the appointment could still be retrieved using its ID and that its status had changed to CANCELLED rather than being deleted. I then listed appointments for the same practitioner without specifying a status and confirmed that A1 was still displayed. I also filtered for SCHEDULED appointments and confirmed that the cancelled appointment was excluded. Finally, I booked another appointment in the same time slot, demonstrating that the cancelled appointment remained in the history without preventing a new booking.
+
+# G. Ten formative answers
+
+### G1. What makes select_appointments pure, and what side effect breaks purity?
+
+`select_appointments` is pure because it receives all the information it needs through its parameters and returns a result without changing the original appointment collection or the Appointment objects. It does not access a global data store or interact with the user. A side effect such as modifying the original list, changing an appointment's status or printing output would break its purity.
+
+### G2. Which explicit inputs are needed, and why avoid a global store?
+
+The function needs the appointment collection, the `practitioner_id` and an optional `status` filter. These inputs should be passed explicitly rather than accessing a global store because this makes the function predictable, easier to test and reusable with different collections of appointments.
+
+### G3. How can a new list reuse Appointment objects safely?
+
+The function can create a new list containing references to the original Appointment objects. This gives the caller a separate list to work with while keeping the original objects unchanged. The list itself is new, but the Appointment objects are reused rather than copied.
+
+### G4. Why use a named key, and what breaks equal-time ties?
+
+A named sorting key, `appointment_sort_key`, makes the sorting logic easier to understand, reuse and maintain. It sorts appointments first by date and time, then uses `appointment_id` as a tie-breaker when two appointments have the same date and time.
+
+### G5. How do default and explicit status filters differ?
+
+When `status=None`, the function returns all appointments belonging to the specified practitioner, regardless of their status. When an explicit status is provided, such as `SCHEDULED` or `CANCELLED`, the function only returns appointments matching that status.
+
+### G6. How do empty, unknown practitioner and invalid filter cases differ?
+
+An empty result means the practitioner exists but has no appointments matching the requested filters. An unknown practitioner raises a `LookupError` because the practitioner cannot be found in the data store. An invalid status filter raises a `ValueError` because the supplied status is not a valid `AppointmentStatus`.
+
+### G7. Which console errors recover, and how is unchanged state checked?
+
+The console should recover from invalid menu choices, missing or unknown records, duplicate registrations, invalid dates, booking conflicts and invalid status filters. Instead of terminating the program, it should display an error and allow the user to try again. State preservation can be checked by confirming that failed operations do not create or modify records unexpectedly and that valid operations can still be completed afterwards. The UI-02 workflow test demonstrates this recovery behaviour.
+
+### G8. What is data integrity for registered participants, conflicts and history?
+
+Data integrity means appointments must reference valid registered patients and practitioners rather than unrelated or unregistered objects. Booking conflicts must prevent a practitioner from having two scheduled appointments at the same time. When an appointment is cancelled, it should remain in the data store with its status changed to `CANCELLED`, preserving its history while freeing the time slot for another booking.
+
+### G9. What is Copilot's review role, and who verifies findings?
+
+GitHub Copilot can review code, identify possible defects, suggest improvements and highlight areas that may need more testing. However, its suggestions are not automatically correct and should not be treated as proof that the application works. The developer is responsible for checking each finding against the actual code, assignment requirements and test results. Human verification is necessary before accepting or rejecting suggestions.
+
+### G10. How do pure functions and OOP responsibilities work together?
+
+Pure functions handle predictable tasks such as filtering and sorting appointment collections without changing application state. Object-oriented components manage the application's data and responsibilities: domain objects represent records and rules, the data store manages collections, services coordinate operations, and the console handles user interaction. Together, these approaches keep responsibilities separate and prevent user-interface code from controlling important domain rules.
 
 ## H. Review, completion and common handover
 
