@@ -211,12 +211,13 @@ If an appointment booking, cancellation or other operation is rejected, existing
 
 | Requirement / test ID | Code location | Case and meaningful assertion | Actual result | Evidence link |
 |---|---|---|---|---|
-| QRY-01 | `project/smartcare/queries.py`, `project/tests/test_queries.py` | Verify that only appointments belonging to the requested practitioner are returned, with another practitioner's appointment used as a control. | Passed | `test_queries.py` |
-| QRY-02 | `project/smartcare/queries.py`, `project/tests/test_queries.py` | Verify that `status=None` includes all statuses, each explicit `AppointmentStatus` returns matching appointments, and a status with no matches returns an empty list. | Passed | `test_queries.py` |
-| QRY-03 | `project/smartcare/queries.py`, `project/tests/test_queries.py` | Verify ascending date/time ordering, appointment ID tie-breaking for equal times, and that the original list and appointment fields remain unchanged. | Passed | `test_queries.py` |
-| FP-01 | `project/smartcare/queries.py`, `project/tests/test_queries.py` | Repeat queries with unchanged inputs and verify equivalent results. Inspect the implementation for hidden state, input/output and side effects. | Passed | `test_queries.py` and code inspection |
-| FP-02 | `project/smartcare/queries.py`, `project/tests/test_queries.py` | Verify that empty, already-sorted and unsorted inputs produce a distinct result list while preserving the original list and contained appointment objects. | Passed | `test_queries.py` |
-| FP-03 | `project/smartcare/queries.py`, `project/tests/test_queries.py` | Directly test `appointment_sort_key()` and verify that `select_appointments()` uses the named key for sorting. | Passed | `test_queries.py` |
+| QRY-01 | `project/smartcare/queries.py`, `project/tests/test_queries.py` | Verify that only appointments belonging to the requested practitioner are returned, with another practitioner's appointment used as a control. | Passed | `project/tests/test_queries.py` |
+| QRY-02 | `project/smartcare/queries.py`, `project/tests/test_queries.py` | Verify that `status=None` includes all statuses, each explicit `AppointmentStatus` returns matching appointments, and a status with no matches returns an empty list. | Passed | `project/tests/test_queries.py` |
+| QRY-03 | `project/smartcare/queries.py`, `project/tests/test_queries.py` | Verify ascending date/time ordering, appointment ID tie-breaking for equal times, and that the original list and appointment fields remain unchanged. | Passed | `project/tests/test_queries.py` |
+| FP-01 | `project/smartcare/queries.py`, `project/tests/test_queries.py` | Repeat queries with unchanged inputs and verify equivalent results. Inspect the implementation for hidden state, input/output and side effects. | Passed | `project/tests/test_queries.py` and code inspection |
+| FP-02 | `project/smartcare/queries.py`, `project/tests/test_queries.py` | Verify that empty, already-sorted and unsorted inputs produce a distinct result list while preserving the original list and contained appointment objects. | Passed | `project/tests/test_queries.py` |
+| FP-03 | `project/smartcare/queries.py`, `project/tests/test_queries.py` | Directly test `appointment_sort_key()` and verify that `select_appointments()` uses the named key for sorting. | Passed | `project/tests/test_queries.py` |
+| QRY-04 | `project/smartcare/services.py`, `project/tests/test_services.py` | Verify practitioner appointment listing, including known practitioners with no matching appointments, unknown practitioners, invalid IDs/status values and optional status filtering. | Included in passing regression suite; confirm individual test coverage against the test file. | `project/tests/test_services.py` |
 
 ### Overall verification
 
@@ -224,24 +225,35 @@ If an appointment booking, cancellation or other operation is rejected, existing
 
 **Working directory:** `project/`
 
-**Actual result:** 37 passed.
+**Actual result:** 52 passed.
 
-The complete existing test suite and the new Stage 9 query tests passed together. Passing tests provide evidence of correct behaviour, but do not independently prove purity. Code inspection is also required to confirm that the query functions do not access hidden state, perform input/output or modify their inputs.
+The complete existing test suite and the Stage 9 tests passed together. This provides evidence that the tested query, service and domain behaviours work as expected.
 
-Include practitioner isolation, every enum status/default all, equal-time ID tie-break, named-key reuse, repeated calls, empty/already-sorted fresh lists, unchanged source order/fields, known-empty/unknown/invalid service cases and retained history.
+Passing tests do not independently prove purity. Code inspection is also required to confirm that the query functions do not access hidden state, perform input/output or modify their inputs.
 
-Purity explanation from code inspection, including absence of hidden state and I/O: <!-- response -->
-What the tests do and do not establish: <!-- response -->
+### Purity explanation from code inspection
+
+The query functions receive the information they need through their parameters. They do not access the data store, use global variables, request user input or print output.
+
+The `appointment_sort_key()` function returns a tuple containing the appointment's date/time and appointment ID. The `select_appointments()` function filters the supplied appointments and uses `sorted()` with the named sorting key to return a new list.
+
+The returned list can contain references to the original Appointment objects, but the query functions do not modify those objects or the original collection. This makes the query operations predictable and repeatable when the same inputs are supplied.
+
+### What the tests do and do not establish
+
+The passing tests provide evidence that the specific tested scenarios behave as expected. These include practitioner filtering, appointment status filtering, sorting, tie-breaking, list identity and preservation of the original collection.
+
+The broader regression suite also provides evidence that earlier functionality remains operational.
+
+However, passing tests do not prove that every possible input or situation will work correctly. They only verify the scenarios covered by their assertions. Code inspection is still necessary to assess the absence of hidden state, input/output and unintended side effects.
 
 ## D. Integrated console and workflow evidence
 
 | Scenario / acceptance ID | Reproducible inputs / artefact | Expected result | Observed result and state check | Evidence link |
 |---|---|---|---|---|
-| UI-01 full menu workflow | | | | |
-| UI-02 invalid-input recovery | | | | |
-| Automated service workflow | | | | |
-
-Include registration/find, booking, conflict rejection, different-practitioner booking, cancellation, retrieval, listing/filtering, freed slot and exit; duplicate/unknown/blank IDs, malformed/impossible date, invalid status, unknown choice and repeated cancellation. Identify before/after state and subsequent successful action.
+| UI-01 full menu workflow | Run `python main.py --interactive`. Register patient P1, practitioners D1 and D2. Book A1 for P1 with D1 at `2026-10-01 09:00`. Attempt another booking with D1 at the same time, then book A2 with D2 at the same time. Cancel A1, find A1, list D1's appointments with all statuses and then SCHEDULED only. Book another appointment into D1's freed time slot and exit. | Registration and booking succeed. The conflicting booking is rejected. Booking with a different practitioner is allowed. Cancellation changes A1 to CANCELLED without deleting it. A1 remains retrievable and appears in the all-status listing but not the SCHEDULED-only listing. The freed time slot can be booked again. | Successfully demonstrated. P1, D1 and D2 were registered. A1 was booked successfully. A second booking with D1 at the same time was rejected. A2 was successfully booked with D2. A1 was cancelled and subsequently retrieved with CANCELLED status. The all-status listing included A1, while the SCHEDULED-only listing returned no matching appointments. A separate session also demonstrated successful booking into D1's previously occupied time slot after cancellation. | Manual terminal demonstration |
+| UI-02 invalid-input recovery | Run `python main.py --interactive` and enter an invalid menu choice (`9`), followed by `0` to exit. | The application displays an invalid-choice message, returns to the menu and allows the user to exit normally. | Successfully demonstrated. Entering `9` displayed `Invalid menu choice. Please select 0 to 8.` The menu appeared again and the application exited normally after entering `0`. Other invalid-input cases still require explicit demonstration. | Manual terminal demonstration |
+| Automated service and regression tests | From the `project/` directory, run `python -m pytest -q`. Existing service tests are in `tests/test_services.py`. | Existing service and domain functionality remains operational, including patient/practitioner lookup, appointment cancellation, missing appointment handling and rejection of repeated cancellation. | The complete test suite reported 52 passed. No test failures were reported. | `project/tests/test_services.py`, `project/tests/test_queries.py` and full pytest result |
 
 ## E. GitHub Copilot review and human decisions
 
