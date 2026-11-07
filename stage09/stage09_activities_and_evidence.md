@@ -9,17 +9,19 @@ Stage 8 integrated SHA, command, working directory and actual result: <!-- compl
 ## A. Tutorial activities
 
 ### A1 Session state classification
-
 | Information | Required session/domain or transient state? | Requirement or reason |
 |---|---|---|
-| Patient identity | | |
-| Appointment history | | |
-| Temporary menu choice | | |
-| Practitioner specialty | | |
-| Debug print output | | |
-| Appointment status | | |
+| Patient identity | Required session/domain state | Needed to identify registered patients and associate them with appointments during the session. |
+| Appointment history | Required session/domain state | Needed to retrieve previous appointments, including cancelled appointments, during the session. |
+| Temporary menu choice | Transient interaction state | Only needed while processing the user's current menu selection. It does not need to be retained. |
+| Practitioner specialty | Required session/domain state | Needed to retain practitioner details and provide accurate practitioner information during the session. |
+| Debug print output | Transient debug state | Used temporarily by developers to troubleshoot the application. It is not part of the application's domain data. |
+| Appointment status | Required session/domain state | Needed to distinguish scheduled and cancelled appointments and enforce valid appointment operations. |
 
-What is intentionally lost on exit? <!-- response -->
+What is intentionally lost on exit?
+
+<!-- response -->
+All in-memory session data is intentionally lost when the program exits, including registered patient details, practitioner details, appointment records and appointment statuses. Temporary menu selections and debugging output are also not retained. The application uses in-memory storage rather than permanent database storage, so a new session starts with empty collections.
 
 ### A2 Interface and domain data plan
 
