@@ -12,12 +12,14 @@ Baseline: Stage 6 foundation, 2026 revision 2. This starter deliberately leaves 
   - Seb (Sebastian-Hillier) - Fredwatto - UG
 - Shared repository URL: https://github.com/ShadowMonrch/st1-assignment-3
 - Latest completed stage: Stage 12 - UG
-- Verified code SHA: 9b10a5d4f75cdb45a10464cc5d224ea5739ae7f9
+- Tested application SHA: 1023ec7a702a161e9b1df6ec76ccebca1fc43116
 - Test command, working directory and observed result:
   - Command: python -m pytest -q
   - Working directory: project/
   - Result: 52 passed
-- Final submitted SHA, if different from tested code SHA: Pending final submission.
+- Final submitted SHA: 908f9e5ca2bed99dcd982e63007a5e562f10e355
+- Final release branch: release/stage12-ug
+- Source ZIP: SmartCare_Assignment3_UG_Release.zip
 
 Do not put student IDs, private peer ratings, credentials or personal contact details here.
 
