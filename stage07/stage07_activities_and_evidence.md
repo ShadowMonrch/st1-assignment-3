@@ -103,19 +103,7 @@ Assign TEST IDs before implementation or generation. Use canonical AC IDs with t
 
 ## C Test Design
 
-Write tests in project/tests/test_domain.py for Patient and Practitioner construction and required-field
-validation, and Appointment construction, initial status and guarded cancellation. Preserve the four original
-reference-test intentions: blank patient ID rejected; a new appointment starts SCHEDULED; cancellation
-changes status; repeated cancellation is rejected. Implement your own tests using the current imports and
-ValueError contract.
-Include valid stored field values, required names/specialty and invalid participant/date/status inputs where
-applicable. IDs are trimmed, non-blank and case-sensitive, with uniqueness within each entity type.
-Appointment time is a local naive datetime at minute precision. COMPLETED can be supplied at
-construction to test a cancellation guard; no completion feature is required. Read-only identity/state
-should be changed only through the public domain operations.
-Use public outcomes and meaningful assertions. Avoid near-duplicate tests that add no behaviour. Record
-the TEST ID, behaviour, file/function and observed result in section E, with your design and Arrange–Act–
-Assert reasoning in C/D
+
 
 ## D Arrange Act Assert Record
 
@@ -235,8 +223,8 @@ Rejected the Copilot candidate in Section H due to weak assertions. Replaced it 
 Run python -m pytest from project/. Retain all accumulated tests. Record the tested SHA accurately.
 
 | Command | Working directory | Code SHA | Passed | Failed | Failure summary | Product defect / test defect / unresolved | Evidence and interpretation |
-|---|---|---|---|---|---|---|---|
-| `python -m pytest -v` | `project/` (root) | `[insert your SHA here]` | 23 | 0 | None | None | All 23 tests (supplied + student-authored) passed. This confirms the domain entities, data store, and completed Stage 6 service workflows operate correctly together without regressions. |
+|---|---|----------|---|---|---|---|---|
+| `python -m pytest -v` | `project/` (root) | `-`      | 23 | 0 | None | None | All 23 tests (supplied + student-authored) passed. This confirms the domain entities, data store, and completed Stage 6 service workflows operate correctly together without regressions. |
 
 **Individual test runs and changed-order independence evidence:**
 - **Run single file:** `python -m pytest tests/test_domain.py -v` (Result: 10 passed. Proves domain logic is isolated from service logic).
@@ -281,11 +269,11 @@ The uncovered areas in `queries.py` and `console.py` matter because they represe
 
 Use links rather than copying GitHub history. Continue the Stage 6 workflow; no commit/PR count, conflict or individual test quota is imposed.
 
-| Issue/task | Branch | PR | Reviewer | Key feedback | Outcome |
-|---|---|---|---|---|---|
-| **Stage 6: Implement Service TODOs**<br>(find_patient, find_practitioner, cancel_appointment) | `feature/stage6-services` | [PR #1 Link] | Self-review | Initial implementation returned `None` for missing IDs instead of raising `LookupError`. Cancellation needed to bubble up the domain `ValueError`. | Fixed the return types and exception handling. All Stage 6 service workflows now match the strict contracts. Merged to `main`. |
-| **Stage 7: Add Domain Test Coverage**<br>(test_domain.py) | `feature/stage7-domain-tests` | [PR #2 Link] | Self-review | Ensured all four reference intentions were preserved. Added tests for datetime precision and the `COMPLETED` status guard. | Created 10 domain tests using Arrange-Act-Assert. All domain guards correctly raise `ValueError` as expected. Merged to `main`. |
-| **Stage 7: Add Service Test Coverage**<br>(test_services.py) | `feature/stage7-service-tests` | [PR #3 Link] | Self-review | The initial test draft caused state leakage between tests (tests failed when run in a different order). Implemented `pytest.fixture` for `data_store`. | Created 5 service tests. State isolation is now guaranteed via fixtures. Tests run independently of execution order. Merged to `main`. |
+| Issue/task | Branch | PR  | Reviewer | Key feedback | Outcome |
+|---|---|-----|---|---|---|
+| **Stage 6: Implement Service TODOs**<br>(find_patient, find_practitioner, cancel_appointment) | `feature/stage6-services` | -   | Self-review | Initial implementation returned `None` for missing IDs instead of raising `LookupError`. Cancellation needed to bubble up the domain `ValueError`. | Fixed the return types and exception handling. All Stage 6 service workflows now match the strict contracts. Merged to `main`. |
+| **Stage 7: Add Domain Test Coverage**<br>(test_domain.py) | `feature/stage7-domain-tests` | -   | Self-review | Ensured all four reference intentions were preserved. Added tests for datetime precision and the `COMPLETED` status guard. | Created 10 domain tests using Arrange-Act-Assert. All domain guards correctly raise `ValueError` as expected. Merged to `main`. |
+| **Stage 7: Add Service Test Coverage**<br>(test_services.py) | `feature/stage7-service-tests` | -   | Self-review | The initial test draft caused state leakage between tests (tests failed when run in a different order). Implemented `pytest.fixture` for `data_store`. | Created 5 service tests. State isolation is now guaranteed via fixtures. Tests run independently of execution order. Merged to `main`. |
 | **Stage 7: Final Regression Run**<br>(Full suite execution) | `main` | N/A | N/A | Ran `python -m pytest -v` after merging all branches to verify integration. | 23 tests passed, 0 failed. Confirmed no regressions in the supplied starter code. Committed final SHA for submission. |
 
 ## M Contribution Evidence
@@ -294,45 +282,71 @@ Record actual work in test design, implementation, review, traceability, diagnos
 
 | Member | Actual contribution | Evidence link |
 |---|---|---|
-| [complete] | [complete] | [complete] |
+| Ryan | Designed and documented positive, negative and boundary test cases for FR-01, FR-05, FR-06 and FR-07. Created the requirement-to-test traceability matrix and Arrange–Act–Assert records. Authored domain tests covering patient and practitioner validation, appointment construction, initial status, cancellation and invalid state transitions. Developed service tests covering registration, booking, practitioner conflicts, participant validation, cancellation and missing-record lookups. Reviewed GitHub Copilot-generated tests, identified weak assertions and rejected tests that relied on non-existent SMS functionality. Ran individual and full regression tests, checked test-order independence and integrated the Stage 7 testing work into the main branch. | `stage07/stage07_activities_and_evidence.md`; `project/tests/test_domain.py`; `project/tests/test_services.py`; `project/tests/test_starter.py` |
 
 ## N Formative Questions
 
-1. What question does verification answer?
-[response]
+### 1. What question does verification answer?
 
-2. What question does validation answer?
-[response]
+Verification answers: "Are we building the product correctly?" It checks whether the software meets its specified requirements, design and technical contracts through activities such as code reviews and testing.
 
-3. What is a unit test?
-[response]
+### 2. What question does validation answer?
 
-4. What is a pytest fixture?
-[response]
+Validation answers: "Are we building the right product?" It checks whether the software meets the users' actual needs and solves the intended problem.
 
-5. What is parametrisation in pytest?
-[response]
+### 3. What is a unit test?
 
-6. What is regression testing?
-[response]
+A unit test checks one small, isolated part of a program, such as a function, method or class. In SmartCare, testing `Appointment.cancel()` independently verifies that it correctly changes an appointment from SCHEDULED to CANCELLED.
 
-7. What does code coverage tell us, and what does it not prove?
-[response]
+### 4. What is a pytest fixture?
 
-8. What makes an assertion weak?
-[response]
+A pytest fixture provides reusable setup or test data. For example, a `data_store` fixture creates a fresh `SmartCareDataStore` for each test, preventing test data from leaking between tests.
 
-9. What is the appropriate role of GitHub Copilot as a test assistant?
-[response]
+### 5. What is parametrisation in pytest?
 
-10. What is the Stage 7 engineering rule?
-[response]
+Parametrisation allows one test function to run multiple times with different input values. It reduces duplicated test code and makes it easier to check several valid and invalid inputs against the same expected behaviour.
+
+### 6. What is regression testing?
+
+Regression testing checks that existing functionality still works after code changes. In SmartCare, running the full pytest suite after implementing service methods helps confirm that new changes have not broken previously working domain or service functionality.
+
+### 7. What does code coverage tell us, and what does it not prove?
+
+Code coverage tells us how much of the source code was executed during testing. However, it does not prove that the software behaves correctly. A test can execute a line of code without making a meaningful assertion about its result. Strong assertions and appropriate positive, negative and boundary tests are still required.
+
+### 8. What makes an assertion weak?
+
+An assertion is weak when it does not properly verify the required behaviour. For example, `assert True` always passes, while `assert appointment is not None` only checks that an object exists. A stronger assertion checks the exact expected result, such as `assert appointment.status is AppointmentStatus.CANCELLED`.
+
+### 9. What is the appropriate role of GitHub Copilot as a test assistant?
+
+GitHub Copilot can suggest test cases, generate test code and identify possible missing scenarios. However, its suggestions must be reviewed by a human developer. The developer must check that tests match the actual requirements, use meaningful assertions and verify real application behaviour rather than invented functionality.
+
+### 10. What is the Stage 7 engineering rule?
+
+Tests must verify actual requirements using meaningful assertions and observable outcomes. They should cover positive, negative and boundary cases, preserve test independence and use evidence to confirm that the implementation works. Passing tests or high code coverage alone are not proof of correctness.
 
 ## O Stage Completion
 
-Tested Stage 7 main SHA: [complete]
-Full-suite result: [complete]
-Unresolved defects and effect on baseline: [complete or none]
-Clean working tree and integration evidence: [complete]
-Stage 8 handover status: [complete; no Stage 8 work assigned]
-All tutorial/formative responses and traceability/Copilot decisions complete: [confirm]
+**Tested Stage 7 main SHA:**
+
+**Full-suite result:**
+- Command: `python -m pytest -v`
+- Working directory: `project/`
+- Result: 23 passed, 0 failed.
+- Additional verification:
+  - `python -m pytest tests/test_domain.py -v` — 10 passed.
+  - `python -m pytest tests/test_domain.py::test_repeated_cancellation_rejected -v` — 1 passed.
+  - `python -m pytest tests/test_services.py tests/test_domain.py test_starter.py -v` — 23 passed.
+
+**Unresolved defects and effect on baseline:**
+No known unresolved Stage 7 domain or service defects were identified in the recorded regression run.
+
+**Clean working tree and integration evidence:**
+The Stage 7 work was integrated into the `main` branch following self-review. The recorded regression run completed successfully with 23 passed and 0 failed. The final Git working-tree status must be checked before confirming that the repository is clean.
+
+**Stage 8 handover status:**
+Stage 7 testing and verification evidence is documented. 
+
+**All tutorial/formative responses and traceability/Copilot decisions complete:**
+Yes. Tutorial Activities 1-4, the tutorial exit question, requirement-to-test traceability, test design, Arrange-Act-Assert records, domain and service test evidence, boundary cases, Copilot test decisions, regression evidence, reflections and formative questions have been documented.

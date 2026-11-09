@@ -9,7 +9,7 @@ from smartcare.services import (
     PractitionerService,
     AppointmentService,
 )
-from smartcare.domain import AppointmentStatus
+from smartcare.domain import Appointment, AppointmentStatus
 
 
 # --- Fixtures for Arrange step (Ensures fresh state for every test) ---
@@ -149,3 +149,166 @@ def test_service_repeated_cancellation_rejected(patient_service, practitioner_se
     # Act & Assert: Try to cancel it again via the service
     with pytest.raises(ValueError, match="Only SCHEDULED appointments may be cancelled"):
         appointment_service.cancel_appointment('A1')
+
+# --- Stage 9 Practitioner Appointment Listing Tests (QRY-04) ---
+
+
+def test_list_practitioner_appointments_includes_all_statuses(
+    patient_service,
+    practitioner_service,
+    appointment_service,
+    data_store,
+):
+    """QRY-04: Omitting status includes scheduled, cancelled and completed."""
+    patient = patient_service.register_patient('P1', 'Alice')
+    practitioner = practitioner_service.register_practitioner(
+        'D1', 'Dr Smith', 'GP'
+    )
+
+    # Create a cancelled appointment.
+    appointment_service.book_appointment(
+        'A1', 'P1', 'D1', datetime(2026, 10, 1, 9)
+    )
+    appointment_service.cancel_appointment('A1')
+
+    # Create a scheduled appointment.
+    appointment_service.book_appointment(
+        'A2', 'P1', 'D1', datetime(2026, 10, 1, 10)
+    )
+
+    # Create a completed appointment.
+    completed = Appointment(
+        'A3',
+        patient,
+        practitioner,
+        datetime(2026, 10, 1, 11),
+        AppointmentStatus.COMPLETED,
+    )
+    data_store.add_appointment(completed)
+
+    result = appointment_service.list_practitioner_appointments('D1')
+
+    assert [appointment.appointment_id for appointment in result] == [
+        'A1', 'A2', 'A3'
+    ]
+    assert [appointment.status for appointment in result] == [
+        AppointmentStatus.CANCELLED,
+        AppointmentStatus.SCHEDULED,
+        AppointmentStatus.COMPLETED,
+    ]
+
+
+@pytest.mark.parametrize(
+    ('status', 'expected_ids'),
+    [
+        (AppointmentStatus.SCHEDULED, ['A2']),
+        (AppointmentStatus.CANCELLED, ['A1']),
+        (AppointmentStatus.COMPLETED, ['A3']),
+    ],
+)
+def test_list_practitioner_appointments_filters_by_status(
+    patient_service,
+    practitioner_service,
+    appointment_service,
+    data_store,
+    status,
+    expected_ids,
+):
+    """QRY-04: A supplied status returns only matching appointments."""
+    patient = patient_service.register_patient('P1', 'Alice')
+    practitioner = practitioner_service.register_practitioner(
+        'D1', 'Dr Smith', 'GP'
+    )
+
+    appointment_service.book_appointment(
+        'A1', 'P1', 'D1', datetime(2026, 10, 1, 9)
+    )
+    appointment_service.cancel_appointment('A1')
+
+    appointment_service.book_appointment(
+        'A2', 'P1', 'D1', datetime(2026, 10, 1, 10)
+    )
+
+    data_store.add_appointment(
+        Appointment(
+            'A3',
+            patient,
+            practitioner,
+            datetime(2026, 10, 1, 11),
+            AppointmentStatus.COMPLETED,
+        )
+    )
+
+    result = appointment_service.list_practitioner_appointments(
+        'D1', status
+    )
+
+    assert [appointment.appointment_id for appointment in result] == (
+        expected_ids
+    )
+
+
+def test_list_practitioner_appointments_only_returns_requested_practitioner(
+    patient_service,
+    practitioner_service,
+    appointment_service,
+):
+    """QRY-04: Appointments belonging to other practitioners are excluded."""
+    patient_service.register_patient('P1', 'Alice')
+    practitioner_service.register_practitioner('D1', 'Dr Smith', 'GP')
+    practitioner_service.register_practitioner('D2', 'Dr Jones', 'Dentist')
+
+    appointment_service.book_appointment(
+        'A1', 'P1', 'D1', datetime(2026, 10, 1, 9)
+    )
+    appointment_service.book_appointment(
+        'A2', 'P1', 'D2', datetime(2026, 10, 1, 10)
+    )
+
+    result = appointment_service.list_practitioner_appointments('D1')
+
+    assert [appointment.appointment_id for appointment in result] == ['A1']
+
+
+def test_list_practitioner_appointments_returns_empty_list_when_no_matches(
+    practitioner_service,
+    appointment_service,
+):
+    """QRY-04: A known practitioner with no appointments gets an empty list."""
+    practitioner_service.register_practitioner('D1', 'Dr Smith', 'GP')
+
+    result = appointment_service.list_practitioner_appointments('D1')
+
+    assert result == []
+    assert isinstance(result, list)
+
+
+def test_list_practitioner_appointments_unknown_practitioner_raises_lookup_error(
+    appointment_service,
+):
+    """QRY-04: An unknown practitioner ID raises LookupError."""
+    with pytest.raises(LookupError, match='Practitioner not found'):
+        appointment_service.list_practitioner_appointments('D99')
+
+
+@pytest.mark.parametrize('practitioner_id', ['', '   ', None, 123])
+def test_list_practitioner_appointments_invalid_id_raises_value_error(
+    appointment_service,
+    practitioner_id,
+):
+    """QRY-04: Blank and non-string practitioner IDs raise ValueError."""
+    with pytest.raises(ValueError):
+        appointment_service.list_practitioner_appointments(practitioner_id)
+
+
+def test_list_practitioner_appointments_invalid_status_raises_value_error(
+    practitioner_service,
+    appointment_service,
+):
+    """QRY-04: A status outside AppointmentStatus raises ValueError."""
+    practitioner_service.register_practitioner('D1', 'Dr Smith', 'GP')
+
+    with pytest.raises(ValueError, match='Invalid appointment status'):
+        appointment_service.list_practitioner_appointments(
+            'D1', 'scheduled'
+        )
