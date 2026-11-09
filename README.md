@@ -5,13 +5,19 @@ Baseline: Stage 6 foundation, 2026 revision 2. This starter deliberately leaves 
 
 ## Group index
 
-- Group and tutorial: [complete]
-- Member names, GitHub usernames and UG/PG cohorts: [complete]
-- Shared repository URL: [complete]
-- Latest completed stage: [complete]
-- Verified code SHA: [complete]
-- Test command, working directory and observed result: [complete]
-- Final submitted SHA, if different from tested code SHA: [complete; explain evidence-only changes]
+- Group and tutorial: Group 8 (Canvas)
+- Member names, GitHub usernames and UG/PG cohorts:
+  - Deng - ShadowMonrch - UG
+  - Ryan - u3324852 - UG
+  - Seb (Sebastian-Hillier) - Fredwatto - UG
+- Shared repository URL: https://github.com/ShadowMonrch/st1-assignment-3
+- Latest completed stage: Stage 12 - UG
+- Verified code SHA: 9b10a5d4f75cdb45a10464cc5d224ea5739ae7f9
+- Test command, working directory and observed result:
+  - Command: python -m pytest -q
+  - Working directory: project/
+  - Result: 52 passed
+- Final submitted SHA, if different from tested code SHA: Pending final submission.
 
 Do not put student IDs, private peer ratings, credentials or personal contact details here.
 
