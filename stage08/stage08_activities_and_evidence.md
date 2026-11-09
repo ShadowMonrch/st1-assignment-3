@@ -4,9 +4,9 @@ UG and PG | One evolving group project | Complete this blank record using the St
 
 All Assignment 3 stage materials are provided from the beginning. Complete this stage only after the previous applicable stage has been integrated, verified and recorded. Use this supplied record in stage08/ in your EXISTING repository. Preserve project/, all earlier tests, records and responses. Do not download another starter or copy staff solutions. The Stage 8 preparation utility is supplied or run by teaching staff when Stage 8 begins. Follow your tutor’s controlled workflow and the handout. If temporarily supplied, keep it outside the repository in a sibling Stage_8_Assets/ folder; exclude it from Git and the final submission.
 
-Group/tutorial: [Group 5]
+Group/tutorial: [Tues 1:30-3:30 Group 8]
 Members and UG/PG cohorts: [u3323819 (Deng), u3334274 (Seb), u3324852 (Ryan)]
-Record owner / contribution links for each member: [complete]
+Record owner / contribution links for each member: https://github.com/ShadowMonrch/st1-assignment-3/pull/5
 
 Use concise results and accessible artefact links rather than copying entire logs. Keep human-first entries before consulting GitHub Copilot. Link shared evidence once; do not repeat it across sections. No entries below are specimen answers or claimed results.
 
@@ -192,17 +192,17 @@ Result — accepted, revised or rejected / reason / behaviour-preservation concl
 
 Issues for both defects / refactor scope and owners: F8-01: Practitioner conflict correction — u3334274.
 F8-02: Cancelled appointment lookup correction — u3334274.
-Refactor: Simplify conditional logic — [confirm owner].
+Refactor: Simplify conditional logic — (u3334274) — Replaced the hardcoded "scheduled" string with AppointmentStatus.SCHEDULED to improve code readability and consistency..
 Issue links: [Add actual GitHub issue links].
 Branch / prepared, repair and refactor checkpoints: Branch: debug/stage8. Prepared faulty-state SHA: cf9495a. Repair SHA: 9770048. Refactor SHA: 8b2ced6.
-PR link and another member's reviewer identity: [complete]
-Key human feedback, difference from Copilot findings and response/outcome: The reviewer examined the two bug repairs, regression tests and refactoring to confirm they followed the SmartCare requirements. Unlike Copilot's initial diagnosis, which considered several possible causes, the human review focused on whether the implemented repairs were minimal and supported by the test evidence.
-Actual review approval / merge evidence: [complete]
-Integrated code SHA and team pull/retest command / working directory / result: [complete]
-Evidence-only later SHA / explanation if different: [complete or not applicable]
-Each member's substantive contribution and artefact: u3334274 (Seb): Debugging preparation, human diagnoses, regression testing, repairs and Copilot evaluation.
-u3323819 (Deng): [Insert verified contribution and link].
-u3324852 (Ryan): [Insert verified contribution and link].
+PR link and another member's reviewer identity: "https://github.com/ShadowMonrch/st1-assignment-3/pull/5" (u3324852) 
+Key human feedback, difference from Copilot findings and response/outcome: u3324852 reviewed the Stage 8 repairs, regression tests and refactoring in person. Both agreed that the changes addressed the identified defects and were satisfied with the final implementation. Unlike Copilot's initial suggestions, the group review focused on verifying the completed changes against the requirements and test results. No additional changes were requested.
+Actual review approval / merge evidence: Deng and Ryan verbally approved the Stage 8 implementation during an in-person group review. GitHub PR review and merge evidence: https://github.com/ShadowMonrch/st1-assignment-3/pull/5.
+Integrated code SHA and team pull/retest command / working directory / result: Integration branch SHA: 84926ac — 31 tests passed.
+Evidence-only later SHA / explanation if different: Not applicable — no separate evidence-only commit has been made after the final integration.
+Each member's substantive contribution and artefact: Seb (u3334274): Diagnosed and repaired both defects, developed regression tests, evaluated Copilot findings and completed refactoring.
+Deng (u3323819): Reviewed the completed repairs, tests and refactoring, providing feedback and approval.
+Ryan (u3324852): Reviewed the completed implementation and supporting evidence, confirming agreement with the changes.
 
 ## J. Required reflections
 
@@ -266,6 +266,6 @@ Response: Diagnose before you fix. Understand and reproduce the problem before m
 - [ ] Same project and full suite ready for Stage 9 after Stage 8 integration, verification and recording.
 
 Verified integrated code SHA / result: see I.
-Submitted SHA and evidence-only difference if any: [complete]
-Unresolved issues or incomplete checks / owner / next action: [complete]
-Handover note: [complete]
+Submitted SHA and evidence-only difference if any: 84926ac
+Unresolved issues or incomplete checks / owner / next action: 
+Handover note: 
