@@ -1,20 +1,99 @@
-# SmartCare Stage 6 starter
+# SmartCare — Undergraduate Release
 
-Requirements baseline: SmartCare A3 2026 revision 2. Python 3.13 and pytest 8.3.5 verified. Runtime uses only the standard library.
+## Overview
 
-From this directory, using a Python environment with the development dependency installed:
+SmartCare is a Python-based teaching application for managing
+synthetic patient, practitioner and appointment records.
 
-```sh
-python main.py
-python -m pytest
-```
+The application supports patient and practitioner registration
+and lookup, appointment booking, cancellation, appointment lookup,
+and practitioner appointment listings.
 
-If needed in your approved environment: `python -m pip install -r requirements-dev.txt`.
+This release covers the Undergraduate (UG) pathway.
 
-The demo registers synthetic records and books/finds an appointment. All supplied tests pass. Data exists only in this session and is lost on exit; FR-10 restart persistence is retired. Use synthetic information only.
+## Requirements
 
-`domain.py` contains the entities, status and guarded cancellation. `data_store.py` holds three dictionaries through add/find/list methods. The three services share that object. Supplied registration, booking, appointment lookup and conflict checking work. IDs are trimmed, non-blank and case-sensitive. Properties provide read-only identity/appointment state; changes go through domain methods. No special architecture terminology is required.
+- Python 3.13
+- pytest 8.3.5 for development and testing
 
-Stage 6 TODOs: service patient/practitioner lookup and cancellation. Stage 9 TODOs: pure query, named sort key, service listing and interactive menu. The starter TODO contracts are in docstrings. All three Stage 6 TODO calls deliberately raise NotImplementedError; future TODOs remain stubs. No PG rescheduling or assurance solution is supplied.
+The application uses only the Python standard library at runtime.
 
-Service booking accepts IDs and a `datetime` (local, minute precision). Console parser accepts exactly `YYYY-MM-DD HH:MM`. Store lookups return None when absent; service lookups raise LookupError. Invalid values, duplicates, conflicts and illegal transitions raise ValueError. Lists are new containers holding the stored objects. No age, duration, patient-conflict or past-date rules apply.
+## Setup
+
+Open a terminal in the project directory.
+
+Install the development dependency:
+
+    python -m pip install -r requirements-dev.txt
+
+## Running the application
+
+Run the standard demonstration:
+
+    python main.py
+
+Start the interactive menu:
+
+    python main.py --interactive
+
+The interactive menu supports:
+
+1. Register a patient
+2. Find a patient
+3. Register a practitioner
+4. Find a practitioner
+5. Book an appointment
+6. Cancel an appointment
+7. Find an appointment
+8. List a practitioner's appointments
+0. Exit
+
+Appointment date and time input must use:
+
+    YYYY-MM-DD HH:MM
+
+## Running the tests
+
+From the project directory, run the complete test suite:
+
+    python -m pytest -v
+
+The release candidate was tested using Python 3.13.14
+and pytest 8.3.5. The recorded full-suite result was
+52 passing tests.
+
+## Main project structure
+
+- main.py — application entry point.
+- smartcare/domain.py — patient, practitioner and appointment
+  entities, validation and appointment status transitions.
+- smartcare/data_store.py — in-memory storage and record access.
+- smartcare/services.py — registration, lookup, booking,
+  cancellation and practitioner appointment workflows.
+- smartcare/queries.py — appointment filtering and sorting.
+- smartcare/console.py — demonstration and interactive menu.
+- tests/ — automated tests for domain rules, services,
+  queries and interactive workflows.
+
+## Important behaviour and limitations
+
+- Data is stored in memory and exists only for the current session.
+- Records are lost when the application exits.
+- Only synthetic information should be used.
+- Appointment cancellation changes the appointment status
+  to cancelled; it does not delete the record.
+- A practitioner cannot have two scheduled appointments
+  at the same date and time.
+- Practitioner appointment listings can filter by status
+  and are sorted chronologically.
+- The application does not implement persistent storage,
+  deployment, or production healthcare functionality.
+- No clinical or security certification is claimed.
+
+## UG release scope
+
+This release implements the Undergraduate pathway requirements.
+Postgraduate-only functionality is outside this release's scope.
+
+The application is an educational software project and must not
+be used to manage real patient information or clinical appointments.
