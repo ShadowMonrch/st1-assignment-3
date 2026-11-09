@@ -55,7 +55,7 @@ def test_f8_02_cancelled_appointment_retained():
 
     assert cancelled is original
     assert original.status is AppointmentStatus.CANCELLED
-
+    assert original in store.list_appointments()
     # The original appointment must remain stored and accessible.
     assert store.find_appointment("A1") is original
     assert appointments.find_appointment("A1") is original

@@ -87,13 +87,10 @@ class SmartCareDataStore:
         self._appointments[appointment.appointment_id] = appointment
 
     def find_appointment(self, appointment_id: str) -> Appointment | None:
-        if not isinstance(appointment_id, str) or not appointment_id.strip():
-            raise ValueError("Appointment ID cannot be blank")
-        for appointment in self.list_appointments():
-            if (appointment.appointment_id == appointment_id.strip()
-                    and appointment.status.value != "cancelled"):
-                return appointment
-        return None
+        """Return the stored appointment or None; reject blank IDs."""
+        return self._appointments.get(
+            required_text(appointment_id, 'Appointment ID')
+        )
 
     def list_appointments(self) -> list[Appointment]:
         """Return a new list containing all stored appointment objects."""
@@ -105,10 +102,12 @@ class SmartCareDataStore:
         date_time: datetime,
         exclude_appointment_id: str | None = None,
     ) -> bool:
+        """Check for an existing scheduled appointment conflict."""
         for appointment in self.list_appointments():
             if (appointment.appointment_id != exclude_appointment_id
-                    and appointment.practitioner.practitioner_id != practitioner_id
+                    and appointment.practitioner.practitioner_id == practitioner_id
                     and appointment.date_time == date_time
                     and appointment.status.value == "scheduled"):
                 return True
         return False
+
