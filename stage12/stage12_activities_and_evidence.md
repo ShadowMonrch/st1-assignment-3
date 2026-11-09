@@ -59,9 +59,9 @@ The following matrix records the status of the main release activities.
 | Documentation review | Completed | Project README updated and release documentation reviewed. |
 | Peer review | Completed | Ryan checked the work and verbally approved it in person. |
 | Root README completion | Completed | Group 8 details, member usernames, repository URL, tested SHA and test results recorded. |
-| Fresh-clone verification | Outstanding | A fresh clone has not been independently verified as part of this evidence. |
-| Final source ZIP | Outstanding | Final ZIP creation and extraction testing have not been recorded. |
-| Final submission package verification | Outstanding | Final package contents and submission details still require confirmation. |
+| Fresh-clone verification | Outstanding | A separate fresh Git clone has not been independently verified. |
+| Final source ZIP | Completed | Source ZIP created from verified release commit 1023ec7a702a161e9b1df6ec76ccebca1fc43116. |
+| Final submission package verification | Completed | ZIP extracted into a clean folder; application launched successfully and all 52 automated tests passed. |
 
 The automated tests and manual demonstration provide evidence that the implemented functionality is working. However, the outstanding packaging and documentation checks should be completed before treating the submission package as fully verified.
 
@@ -292,7 +292,7 @@ The project uses Python and pytest. The test environment used for the recorded f
 
 The application uses in-memory data storage. Therefore, records created during an interactive session are not saved permanently.
 
-The project README and root repository README have been updated. The root README includes the group information, repository URL, tested SHA and regression test results. A fresh clone and a final source ZIP extraction test have not been recorded as completed.
+A separate fresh Git clone has not been tested. However, the final source ZIP was generated directly from the verified release commit, extracted into a clean directory, and independently tested. The extracted package passed all 52 automated tests, and the interactive application launched and exited successfully.
 
 ## G. Limitations, technical debt and release notes
 
@@ -358,8 +358,8 @@ The Stage 12 review considered the implementation, tests, documentation and repo
 | Empty tracked project/testing123.py file | Repository cleanup | Removed in the Stage 12 documentation/cleanup commit. |
 | Root README contained incomplete placeholders | Documentation issue | Completed during Stage 12 by adding the group information, repository URL, tested SHA and test results. |
 | Application uses in-memory storage | Known limitation | Recorded as a project limitation. |
-| No fresh-clone verification recorded | Release evidence gap | Still requires verification. |
-| No final ZIP extraction test recorded | Release evidence gap | Still requires verification. |
+| No fresh-clone verification recorded | Release evidence gap | A separate Git clone has not been tested. |
+| Final ZIP extraction verification | Completed | ZIP extracted into a clean directory; 52 tests passed and interactive application launched successfully. |
 
 The empty project/testing123.py file was removed as part of the final cleanup commit.
 
@@ -483,12 +483,12 @@ The following checklist records the status of the submission package.
 | Project README updated | Completed |
 | Root README placeholders completed | Completed |
 | Original UG and PG stage templates retained | Completed |
-| Final source ZIP created | Outstanding |
-| ZIP extracted into a clean location | Outstanding |
-| Application run from extracted ZIP | Outstanding |
-| Tests run from extracted ZIP | Outstanding |
-| Final package contents checked | Outstanding |
-| Final submission package confirmed | Outstanding |
+| Final source ZIP created | Completed |
+| ZIP extracted into a clean location | Completed |
+| Application run from extracted ZIP | Completed |
+| Tests run from extracted ZIP | Completed — 52 passed |
+| Final package contents checked | Completed — expected project and stage folders present; .idea and Git metadata excluded |
+| Final submission package confirmed | Completed — release package functionally verified |
 
 ### Submission package considerations
 
@@ -582,6 +582,6 @@ The full regression suite reported 52 passing tests.
 
 The main known limitations are the use of in-memory storage, the console-based interface and the absence of production-level authentication and external integrations.
 
-The remaining handover tasks are to verify the final repository state, create the final source ZIP and test the extracted package.
+The release repository was verified at commit 1023ec7a702a161e9b1df6ec76ccebca1fc43116. The final source ZIP was created from this commit, extracted into a clean directory, and tested successfully. All 52 automated tests passed, and the interactive application launched and exited successfully. A separate fresh Git clone has not been tested.
 
-**Final handover status:** Release candidate reviewed and peer-approved in person; final submission-package verification remains outstanding.
+Final handover status: Release candidate reviewed and peer-approved in person. Source ZIP created and functionally verified through clean extraction, automated testing and interactive application launch.
