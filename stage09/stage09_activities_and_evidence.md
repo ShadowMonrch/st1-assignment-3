@@ -371,14 +371,113 @@ Pure functions handle predictable tasks such as filtering and sorting appointmen
 
 ## H. Review, completion and common handover
 
-Issues and bounded branches: <!-- links -->
-PR/diff and another-member human reviewer: <!-- actual links/name -->
-Review responses and Copilot comparison: <!-- links -->
-Integrated common Stage 9 SHA: <!-- complete -->
-Full regression command, working directory, actual count/result and evidence: <!-- complete -->
-README run instructions and scope/limitations: <!-- link -->
-Unresolved issues and support/action: <!-- complete -->
-UG common candidate / PG future branch plan: <!-- complete -->
+## Issues and bounded branches
+- Stage 9 implementation branch: `feature/stage9-queries`
+- Remote branch: `origin/feature/stage9-queries`
+- Stage 8 debugging branch preserved: `debug/stage08`
+- Latest Stage 9 commit: `8bcb7ea`
+- Stage 9 implementation was developed separately from the common `main` branch.
+- Scope was limited to query functionality, service behaviour, console integration, workflow tests and supporting evidence.
+- No persistence, rescheduling or assurance implementation was included.
+- Repository: https://github.com/ShadowMonrch/st1-assignment-3
+
+## PR/diff and another-member human reviewer
+- Pull Request #4: https://github.com/ShadowMonrch/st1-assignment-3/pulls
+- PR merge commit: `2b6fdf498b99e1d4557c678627c4627aadc5ed22`
+- The PR merged commit `d62dddd`, not the later Stage 9 feature commits.
+- Human reviewer: Ryan
+
+## Review responses and Copilot comparison
+- Copilot comparison: 
+
+copilot response: 
+Review summary
+The repository is a partial Stage 9 scaffold, not a complete query-and-console implementation. The intended boundaries are visible, and the existing domain/store code preserves appointment objects and cancelled history. However, the practitioner-appointment query, service listing workflow, and interactive menu are explicit NotImplementedError stubs. The supplied tests do not exercise those paths.
+
+No Critical findings. The following Important findings block the requested listing and console workflows.
+
+Important findings
+The pure appointment query is unimplemented.
+Observed evidence: appointment_sort_key and select_appointments both raise NotImplementedError. The query’s contract specifies explicit collection, practitioner and optional status inputs; a new result list; date/time then ID ordering; and no mutation or I/O.
+Evidence to check: queries.py, lines 9–27.
+Test evidence: The listed tests contain no query-specific test file or assertions for filtering, deterministic ordering, returned-list independence, or source non-mutation.
+Impact: Query purity, filtering and ordering cannot currently be verified because the behavior does not exist.
+
+The service listing workflow is unimplemented.
+Observed evidence: list_practitioner_appointments is a stub. Its contract calls for an ordered list, all statuses by default, optional status filtering, LookupError for an unknown practitioner, ValueError for invalid status, and an empty list for a known practitioner with no matches.
+Evidence to check: services.py, lines 158–169.
+Test evidence: test_services.py has registration, lookup and cancellation coverage, but no listing tests.
+Impact: No service-level route currently connects a practitioner request to the intended query; the documented empty-versus-unknown and status-validation behavior is unverified.
+
+The interactive console is unimplemented, so input recovery and end-to-end workflows are untested.
+Observed evidence: run_menu raises NotImplementedError; main.py catches and prints it rather than running a menu. run_demo demonstrates registration and booking, not the register/find/book/cancel/list/exit sequence.
+Evidence to check: console.py, lines 45–79 and main.py, lines 9–24.
+Test evidence: The supplied test listing has no console tests. The parser and formatter also lack tests for valid/invalid input and formatting.
+Impact: Expected-error recovery, continued operation after invalid input, and integration of the full workflow are not demonstrated.
+
+Important coverage gap: validation and failure-state checks
+Observed evidence: The current service tests cover patient lookup validation and cancellation errors, and starter tests cover duplicate records, unregistered participants, and one practitioner conflict. They do not establish non-mutation for invalid listing inputs, nor do they test booking failures across the full set of invalid appointment fields and participant lookups.
+Evidence to check: test_services.py, lines 37–151 and test_starter.py, lines 81–151.
+Optional improvement: Add focused tests asserting the store is unchanged after each expected failure, alongside query and console tests for invalid input and recovery.
+
+Positive observed evidence
+Responsibilities are reasonably separated: the domain owns guarded cancellation; services coordinate booking and cancellation; the store owns in-memory collections; and queries.py is intended for collection processing. See domain.py, lines 76–137, services.py, lines 88–156, and data_store.py, lines 15–23.
+Identity and retained history are explicitly protected: appointments must reference the actual registered patient and practitioner objects before insertion, and cancellation changes status without deleting the appointment. Existing tests assert cancellation retention and reject an unregistered participant object. See data_store.py, lines 66–87, domain.py, lines 129–137, and test_services.py, lines 116–150.
+Optional consistency check: has_practitioner_conflict compares appointment.status.value to the string "scheduled" rather than comparing enum members. This is not an observed failure, but an enum-to-enum comparison would make the status check less dependent on enum string values. See data_store.py, lines 100–112.
+
+
+- Copilot suggestions were treated as recommendations rather than automatically accepted solutions.
+- Suggestions were assessed against the requirements and existing code before deciding whether to accept, modify or reject them.
+- Final decisions and independent verification should be documented using the actual review evidence.
+
+## Integrated common Stage 9 SHA
+- Latest Stage 9 feature SHA: `8bcb7ea`
+- Stage 9 implementation commit: `7f5a2e3`
+- Query implementation commit: `63ce93c`
+- Latest inspected `origin/main` SHA: `2b6fdf498b99e1d4557c678627c4627aadc5ed22`
+- The later Stage 9 commits are not ancestors of `origin/main`.
+- Therefore, the integrated common Stage 9 SHA is not yet confirmed.
+- Record the full 40-character SHA after integration and regression testing.
+
+## Full regression command, working directory, actual count/result and evidence
+- Working directory: `project/`
+- Full regression command: `python -m pytest -q`
+- Query tests: `python -m pytest tests/test_queries.py -v`
+- Service tests: `python -m pytest tests/test_services.py -v`
+- Workflow tests: `python -m pytest tests/test_workflows.py -v`
+- Full regression results must be recorded after testing the integrated common Stage 9 commit.
+
+## README run instructions and scope/limitations
+- Install dependencies from the project directory using:
+  `python -m pip install -r requirements-dev.txt`
+- Run the application:
+  `python main.py`
+- Run interactive mode:
+  `python main.py --interactive`
+- Run tests:
+  `python -m pytest -q`
+- Stage 9 scope includes patient and practitioner lookup, appointment queries, cancellation history and console-based workflows.
+- Data is maintained only during the current application session.
+- Persistent storage, rescheduling, production deployment and clinical assurance are outside the Stage 9 scope.
+
+## Unresolved issues and support/action
+- The latest Stage 9 feature branch contains changes that are not included in `origin/main`.
+- Commits `63ce93c`, `7f5a2e3` and `8bcb7ea` require integration into the common release candidate.
+- The working tree was clean during inspection.
+- `git diff --check origin/main...origin/feature/stage9-queries` reported no whitespace errors.
+- Remaining actions are to integrate the Stage 9 changes, resolve any conflicts, run focused and full regression tests, and record the verified results.
+- Any unresolved functional defects must be documented with reproduction steps, impact, owner and corrective action.
+
+## UG common candidate / PG future branch plan
+- UG pathway: Stage 6 → Stage 7 → Stage 8 → Stage 9 → Stage 12.
+- PG pathway: Stage 6 → Stage 7 → Stage 8 → Stage 9 → Stage 10 → Stage 11 → Stage 12.
+- The common Stage 9 implementation will be preserved as the UG Stage 12 starting point.
+- PG-only Stage 10 and Stage 11 work is deferred until approved.
+- Mixed groups will maintain one repository and protect the common UG candidate.
+- The full common candidate SHA will be recorded after integration and testing.
+- PG-specific changes must remain separate from the protected common implementation.
+
+## Stage 9 verification checklist
 
 - [ ] Query contracts, purity, new lists and named-key ordering verified.
 - [ ] Service empty/unknown/invalid cases and cancellation history verified.
@@ -389,4 +488,4 @@ UG common candidate / PG future branch plan: <!-- complete -->
 - [ ] README updated; earlier code/tests/records preserved.
 - [ ] Common SHA protected for UG Stage 12; PG Stage 10/11 work deferred until approved.
 
-No persistence, rescheduling or assurance implementation is part of Stage 9. UG: 6→7→8→9→12. PG: 6→7→8→9→10→11→12. Mixed groups keep one repository and protect the common candidate.
+**Current status:** Stage 9 implementation exists on the remote feature branch. Common integration, full regression evidence, independent review evidence and the final protected common SHA still require confirmation.
