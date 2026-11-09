@@ -111,18 +111,59 @@ Member and saved sequence/time or commit showing this preceded consultation: u33
 Use the full handout prompt separately for BOTH defects, after E. Keep each actual prompt or accessible reference; include observed behaviour, expected behaviour, reproduction, failing test, human hypothesis, relevant code, three ranked causes and discriminating checks, with the no-rewrite/no-invented-requirements constraints.
 
 ### F8-01 Copilot review
-Actual prompt / output reference and member: [complete]
-1. Ranked suggestion / evidence check / observed evidence / correct, partly correct or wrong / accept, modify or reject with reason: [complete]
-2. Ranked suggestion / evidence check / observed evidence / correct, partly correct or wrong / accept, modify or reject with reason: [complete]
-3. Ranked suggestion / evidence check / observed evidence / correct, partly correct or wrong / accept, modify or reject with reason: [complete]
-Final human conclusion and comparison with initial hypothesis: [complete]
+Actual prompt / output reference and member: I am completing Stage 8 (Debugging and Refactoring) of my SmartCare Python assignment. I have identified a defect involving practitioner appointment conflicts. Observed behaviour: The system incorrectly allows two appointments to be booked for the same practitioner at the same date and time. Expected behaviour: The system should reject a second SCHEDULED appointment for the same practitioner and time by raising ValueError. Different practitioners should be allowed appointments at the same time. 
+
+Steps to reproduce: Register patients P1 and P2 and practitioners D1 and D2. Book appointment A1 with practitioner D1 at 2026-10-01 09:00. Attempt to book A2 with D1 at the same time. Observe that the conflicting booking is accepted. 
+
+Failing test: tests/test_regressions.py::test_f8_01_practitioner_conflict 
+
+Exact failure: Failed: DID NOT RAISE ValueError (line 29). My hypothesis: The practitioner conflict check may be using an incorrect comparison operator. In has_practitioner_conflict(), the practitioner IDs are compared using != instead of ==.
+
+Relevant code:
+def has_practitioner_conflict(
+    self,
+    practitioner_id: str,
+    date_time: datetime,
+    exclude_appointment_id: str | None = None,
+) -> bool:
+    for appointment in self.list_appointments():
+        if (appointment.appointment_id != exclude_appointment_id
+                and appointment.practitioner.practitioner_id != practitioner_id
+                and appointment.date_time == date_time
+                and appointment.status.value == "scheduled"):
+            return True
+    return False
+
+Task: Rank the three most likely causes of this defect, from most likely to least likely. For each possible cause: Explain why it could produce the observed failure. Identify specific code or test evidence I should inspect to confirm or reject it. Explain how to distinguish it from the other possible causes. Do not rewrite the entire application, implement fixes or invent requirements. Treat all suggested explanations as hypotheses rather than confirmed facts.
+1. Ranked suggestion / evidence check / observed evidence / correct, partly correct or wrong / accept, modify or reject with reason: Copilot correctly identified that has_practitioner_conflict() uses != instead of ==. This causes the system to check for different practitioners rather than matching ones, allowing conflicting bookings. We accepted this suggestion because it directly explains the failing test.
+2. Ranked suggestion / evidence check / observed evidence / correct, partly correct or wrong / accept, modify or reject with reason: Copilot suggested that the conflict detection method might not be called during booking. However, inspecting book_appointment() confirmed that it calls has_practitioner_conflict() and raises a ValueError when a conflict is detected. Therefore, we rejected this explanation.
+3. Ranked suggestion / evidence check / observed evidence / correct, partly correct or wrong / accept, modify or reject with reason: Copilot suggested that the appointment status comparison might prevent conflicts from being detected. However, AppointmentStatus.SCHEDULED.value is "scheduled", which matches the condition in the method. Therefore, we rejected this suggestion.
+Final human conclusion and comparison with initial hypothesis: The root cause of F8-01 is the incorrect practitioner comparison operator in data_store.py. Changing != to == should restore correct conflict detection without affecting other booking rules.
 
 ### F8-02 Copilot review
-Actual prompt / output reference and member: [complete]
-1. Ranked suggestion / evidence check / observed evidence / correct, partly correct or wrong / accept, modify or reject with reason: [complete]
-2. Ranked suggestion / evidence check / observed evidence / correct, partly correct or wrong / accept, modify or reject with reason: [complete]
-3. Ranked suggestion / evidence check / observed evidence / correct, partly correct or wrong / accept, modify or reject with reason: [complete]
-Final human conclusion and comparison with initial hypothesis: [complete]
+Actual prompt / output reference and member: I am completing Stage 8 (Debugging and Refactoring) of my SmartCare Python assignment. I have identified a defect involving cancelled appointment history. Observed behaviour: After cancelling an appointment, the data-store lookup returns None even though the appointment should remain stored. Attempting to cancel it again raises LookupError instead of the expected ValueError. Expected behaviour: Cancelling an appointment should change its status to CANCELLED without deleting it. The same appointment object should remain accessible through lookup and listing. Repeated cancellation should raise ValueError.
+
+Steps to reproduce: Register patient P1 and practitioner D1. Book appointment A1 for 2026-10-01 09:00. Cancel appointment A1. Attempt to retrieve A1 using find_appointment("A1"). Observe that the lookup returns None.
+
+Failing test: tests/test_regressions.py::test_f8_02_cancelled_appointment_retained 
+
+Exact failure: AssertionError: assert None is <smartcare.domain.Appointment object ...> (line 60). My hypothesis: The data-store lookup incorrectly filters out cancelled appointments, preventing them from being retrieved.
+
+Relevant code:
+def find_appointment(self, appointment_id: str) -> Appointment | None:
+    if not isinstance(appointment_id, str) or not appointment_id.strip():
+        raise ValueError("Appointment ID cannot be blank")
+    for appointment in self.list_appointments():
+        if (appointment.appointment_id == appointment_id.strip()
+                and appointment.status.value != "cancelled"):
+            return appointment
+    return None
+
+Task: Rank the three most likely causes of this defect, from most likely to least likely. For each possible cause: Explain why it could produce the observed failure. Identify specific code or test evidence I should inspect to confirm or reject it. Explain how to distinguish it from the other possible causes. Do not rewrite the entire application, implement fixes or invent requirements. Treat all suggested explanations as hypotheses rather than confirmed facts.
+1. Ranked suggestion / evidence check / observed evidence / correct, partly correct or wrong / accept, modify or reject with reason: Copilot correctly identified that find_appointment() excludes appointments with a "cancelled" status. This explains why the lookup returns None even though the appointment still exists. We accepted this suggestion because it directly matches the code and failing regression test.
+2. Ranked suggestion / evidence check / observed evidence / correct, partly correct or wrong / accept, modify or reject with reason: Copilot suggested that cancellation might delete appointments from storage. However, the regression test confirms that the original appointment object is successfully cancelled, while the data store's list_appointments() method returns all stored appointments without filtering. The evidence points to a lookup issue rather than deletion, so we rejected this explanation.
+3. Ranked suggestion / evidence check / observed evidence / correct, partly correct or wrong / accept, modify or reject with reason: Copilot suggested that list_appointments() might exclude cancelled appointments. However, inspecting the method confirms that it returns all stored appointment objects using list(self._appointments.values()), without filtering by status. Therefore, we rejected this suggestion.
+Final human conclusion and comparison with initial hypothesis: The root cause of F8-02 is the incorrect status restriction in find_appointment(). Removing this restriction will allow cancelled appointments to remain accessible while preserving their original status and object identity.
 
 ## G. Failing to passing regression evidence
 
